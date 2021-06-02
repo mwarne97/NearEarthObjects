@@ -11,8 +11,6 @@ data on NEOs and close approaches extracted by `extract.load_neos` and
 
 You'll edit this file in Tasks 2 and 3.
 """
-from models import NearEarthObject, CloseApproach
-
 
 class NEODatabase:
     """A database of near-Earth objects and their close approaches.
@@ -48,11 +46,10 @@ class NEODatabase:
         self.neo_names = {container.name: container for container in self._neos}
         self.neo_designations = {container.designation: container for container in self._neos}
         # TODO: Link together the NEOs and their close approaches.
-        for neo in self._neos:
-            for approach in self._approaches:
-                if neo.designation == approach.designation_value:
-                    neo.approaches.append(approach)
-                    approach.neo = neo
+        for approach in self._approaches:
+            neo = self.get_neo_by_designation(approach.designation_value)
+            neo.approaches.append(approach)
+            approach.neo = neo
 
     def get_neo_by_designation(self, designation):
         """Find and return an NEO by its primary designation.
@@ -106,5 +103,12 @@ class NEODatabase:
         :return: A stream of matching `CloseApproach` objects.
         """
         # TODO: Generate `CloseApproach` objects that match all of the filters.
+        approach_passed = False
         for approach in self._approaches:
-            yield approach
+            for filter_object in filters:
+                if filter_object is not None:
+                    approach_passed = filter_object(approach)
+                    if not approach_passed:
+                        break
+            if approach_passed:
+                yield approach
